@@ -1,5 +1,10 @@
 # Modified from https://github.com/Nota-NetsPresso/shortened-llm/blob/main/src/eval_ppl.py
 
+# conda activate edge
+# python src/eval/eval_ppl.py 
+
+# single-gpu
+
 import argparse
 import csv
 import os
@@ -8,15 +13,22 @@ import yaml
 
 import numpy as np
 import torch
-from tqdm import tqdm
-from utils import count_params, get_model, set_seed
+import pyrootutils
+pyrootutils.setup_root(__file__, indicator=".project-root", pythonpath=True)
 
+from tqdm import tqdm
+from src.utils import count_params, get_model, set_seed, build_config
 from src.data.dataset import get_loader
 
 @torch.no_grad()
 def llama_eval(model, test_loader, device):
     nlls = []
-    for batch in tqdm(test_loader):
+    for batch in tqdm(test_loader, desc="Evaluating PPL"):
+        
+        # print("batch shape:", batch.shape)  # batch shape: torch.Size([8, 128]) = (bsz, seq_len)
+        # print("batch type:", batch.dtype) # batch type: torch.int64
+        # print()
+
         batch = batch.to(device)
         output = model(batch)
         lm_logits = output.logits
@@ -64,11 +76,15 @@ def eval_ppl(
     csv_header.append(f"PPL (Perplexity)")
     csv_value.append(ppl)
 
-    csv_log_path = os.path.join(config.output_dir, "ppl.csv") # TODO
+    if config.file_name is not None:
+        csv_log_path = os.path.join(config.output_dir, f"ppl_{config.file_name}.csv")
+    else:
+        csv_log_path = os.path.join(config.output_dir, "ppl.csv") 
+
     with open(csv_log_path, "w") as logfile:
         logwriter = csv.writer(logfile, delimiter=",")
-        logwriter.writerow(csv_header + ["Params", "Memory"])
-        logwriter.writerow(csv_value + [nparams, mem])
+        logwriter.writerow(csv_header + ["Params", "Memory", "Time(s)"])
+        logwriter.writerow(csv_value + [nparams, mem, elapsed])
 
 
 def generate_txt(
@@ -129,8 +145,8 @@ if __name__ == "__main__":
     assert config.model_type in ["pretrain", "pruneLLM", "tune_pruneLLM"]
     set_seed(config.seed)
     model, tokenizer, description = get_model(
-        base_model=config.base_model,
-        tokenizer=config.tokenizer,
+        base_model=config.model_path,
+        tokenizer=config.tokenizer_path,
         ckpt=config.ckpt,
         lora_ckpt=config.lora_ckpt,
         model_type=config.model_type,

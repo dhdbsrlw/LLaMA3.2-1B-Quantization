@@ -10,13 +10,14 @@ import time
 import numpy as np
 import torch
 from omegaconf import OmegaConf
-from LLMPruner.peft import PeftModel
+# from LLMPruner.peft import PeftModel
 from transformers import (
     AutoConfig,
     AutoModelForCausalLM,
     AutoTokenizer,
     LlamaForCausalLM,
     LlamaTokenizer,
+    GPTQConfig
 )
 
 
@@ -74,19 +75,11 @@ def count_params(model):
 
 
 def set_model_device_evalmode(
-    # model, device, fix_decapoda_config=False, use_bfloat=False
     model, device, use_bfloat=False
 ):
     if "cuda" in device:
         model.half()
         model = model.to(device)
-
-    # TODO: remove
-    # if fix_decapoda_config:
-    #     # unwind broken decapoda-research config
-    #     model.config.pad_token_id = 0
-    #     model.config.bos_token_id = 1
-    #     model.config.eos_token_id = 2
 
     model.eval()
 
@@ -100,7 +93,7 @@ def set_model_device_evalmode(
 
 
 def get_model(
-    base_model=None,
+    base_model=None, # = model_path
     tokenizer=None,
     ckpt=None,
     lora_ckpt=None,
@@ -109,6 +102,9 @@ def get_model(
     use_bfloat=False,
     # fix_decapoda_config=False,
 ):
+
+    assert model_type in ["pretrain"], f"Unknown model type: {model_type}" #  "pruneLLM", "tune_pruneLLM"
+
     tokenizer = base_model if tokenizer is None else tokenizer
     if model_type == "pretrain":
         config = AutoConfig.from_pretrained(base_model)
@@ -143,6 +139,7 @@ def get_model(
             model = PeftModel.from_pretrained(
                 model, lora_ckpt, torch_dtype=torch.float16, low_cpu_mem_usage=True
             )
+
     else:
         raise NotImplementedError(f"Unknown model type {model_type}.")
 
@@ -150,10 +147,6 @@ def get_model(
         model_type, base_model, ckpt, lora_ckpt
     )
 
-    if fix_decapoda_config:
-        # unwind broken decapoda-research config
-        tokenizer.pad_token_id = 0
-    # model = set_model_device_evalmode(model, device, fix_decapoda_config, use_bfloat)
     model = set_model_device_evalmode(model, device, use_bfloat=use_bfloat)
 
     return model, tokenizer, description
@@ -216,7 +209,6 @@ def get_block_pruned_network(
         model_pruned, model_orig, unimportance_order[:num_pruned_blocks]
     )
     model_pruned = set_model_device_evalmode(
-        # model_pruned, device, fix_decapoda_config, use_bfloat
         model_pruned, device, use_bfloat
     )
     return model_pruned
