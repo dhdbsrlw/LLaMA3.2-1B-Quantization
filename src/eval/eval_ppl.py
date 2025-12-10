@@ -3,8 +3,6 @@
 # conda activate edge
 # python src/eval/eval_ppl.py 
 
-# single-gpu
-
 import argparse
 import csv
 import os
@@ -57,7 +55,7 @@ def eval_ppl(
     csv_value = []
 
     t0 = time.perf_counter()
-    _, test_loader = get_loader(tokenizer, 
+    _, test_loader, _ = get_loader(tokenizer, 
                                 num_workers=config.num_workers,
                                 batch_size=config.batch_size, 
                                 max_seq_len=config.max_seq_len)
@@ -101,7 +99,9 @@ def generate_txt(
     input_ids = tokenizer(config.input_prompt, return_tensors="pt")["input_ids"].to(config.device)
     input_len = input_ids[0].size(0)
     
-    txt_path = os.path.join(config.output_dir, f"gen_text_{config.file_name}.txt") 
+    txt_path = os.path.join(config.output_dir, "gen_text", f"gen_text_{config.file_name}.txt") 
+    os.makedirs(os.path.dirname(txt_path), exist_ok=True)
+    
     with open(txt_path, "w", encoding="utf8") as f:
         f.write("=== input ===\n")
         f.write(f"{config.input_prompt}\n")

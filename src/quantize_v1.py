@@ -1,6 +1,7 @@
 # Modified from https://github.com/Nota-NetsPresso/shortened-llm/blob/main/src/quantize_gptq.py
 
 # GPTQ
+# conda activate edge
 
 import os, json
 import argparse

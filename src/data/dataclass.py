@@ -5,12 +5,12 @@ from torch.utils.data import Dataset
 class TinyStoriesDataset(Dataset):
     """Dataset class for TinyStories dataset."""
 
-    def __init__(self, tokenizer, split: str = "train", seq_len: int = 128):
+    def __init__(self, tokenizer, split: str = "train", seq_len: int = 128, nsamples: int = None):
         self.tokenizer = tokenizer
         self.split = split
         self.seq_len = seq_len
 
-        if split == "train":
+        if split == "train" or split == "calib":
             data_path = "/nas2/data/TinyStories/TinyStoriesV2-GPT4-train.txt"
         elif split == "val":
             data_path = "/nas2/data/TinyStories/TinyStoriesV2-GPT4-valid.txt"
@@ -24,6 +24,10 @@ class TinyStoriesDataset(Dataset):
             if story.strip()
         ]
 
+        if nsamples is not None:
+            stories = stories[:nsamples] 
+            
+
         if split == "train":
             # keep per-story data for training
             self.data = [
@@ -32,7 +36,7 @@ class TinyStoriesDataset(Dataset):
             ]
             self.length = len(self.data)
 
-        else:  # split == "val"
+        else:  # split == "val" or split == "calib"
             # 1) tokenize each story separately, then concatenate ids
             token_id_chunks = []
             for text in stories:
@@ -70,6 +74,6 @@ class TinyStoriesDataset(Dataset):
         if self.split == "train":
             # you can later implement process_train_sample if needed
             return self.data[idx]
-        else:  # val split
+        else:  # val/calib split
             # Return a single [seq_len] tensor
             return self.sequences[idx]

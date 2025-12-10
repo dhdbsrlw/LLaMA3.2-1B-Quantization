@@ -10,7 +10,6 @@ import time
 import numpy as np
 import torch
 from omegaconf import OmegaConf
-from gptqmodel import GPTQModel
 # from LLMPruner.peft import PeftModel
 from transformers import (
     AutoConfig,
@@ -18,7 +17,8 @@ from transformers import (
     AutoTokenizer,
     LlamaForCausalLM,
     LlamaTokenizer,
-    GPTQConfig
+    GPTQConfig,
+    AwqConfig
 )
 
 
@@ -79,7 +79,10 @@ def set_model_device_evalmode(
     model, device, use_bfloat=False
 ):
     if "cuda" in device:
-        model.half()
+        try:
+            model.half()
+        except Exception as e:
+            print(f"model.half() failed: {e}")
         model = model.to(device)
 
     model.eval()
@@ -110,9 +113,8 @@ def get_model(
     if model_type == "pretrain":
         config = AutoConfig.from_pretrained(base_model)
         if "gptq" in base_model.lower(): # in model name
-            print("### Loading GPTQ Quantized Model ###")
-            # from auto_gptq import AutoGPTQForCausalLM
-            # model = AutoGPTQForCausalLM.from_quantized(
+            from gptqmodel import GPTQModel
+            print("# Loading GPTQ Quantized Model")
             model = GPTQModel.from_quantized(
                 base_model,
                 use_safetensors=True,
@@ -121,6 +123,22 @@ def get_model(
                 # use_triton=False,
                 # quantize_config=None,
             )
+            tokenizer = AutoTokenizer.from_pretrained(tokenizer)
+        elif "awq" in base_model.lower():
+            # from awq import AutoAWQForCausalLM
+            print("# Loading AWQ Quantized Model")
+            # model = AutoAWQForCausalLM.from_pretrained(
+            #     base_model,
+            #     trust_remote_code=True,
+            #     torch_dtype="auto",
+            #     safetensors=True,
+            #     device_map="cuda",
+            # )
+            model = AutoModelForCausalLM.from_pretrained(
+                    base_model,
+                    # attn_implementation="flash_attention_2",
+                    device_map="cuda"
+                )
             tokenizer = AutoTokenizer.from_pretrained(tokenizer)
         elif (
             "LlamaForCausalLM" in config.__getattribute__("architectures")
@@ -257,3 +275,31 @@ def convert_json2csv_zeroshot(json_path, csv_path):
         writer.writerow(list_score)
 
     print(csv_path)
+
+
+
+
+def get_block_pruned_network(
+    model_orig,
+    unimportance_order,
+    num_pruned_blocks=1,
+    device="cuda",
+    use_bfloat=False,
+):
+    # Define the block-pruned architecture with random initialization
+    config = copy.deepcopy(model_orig.config)
+    print(f"# blocks before pruning: {config.num_hidden_layers}")
+    config.__setattr__(
+        "num_hidden_layers", (config.num_hidden_layers - num_pruned_blocks)
+    )
+    print(f"# blocks after pruning: {config.num_hidden_layers}")
+    model_pruned = AutoModelForCausalLM.from_config(config)
+
+    # Copy the original model's weights to the pruned model
+    model_pruned = copy_weight(
+        model_pruned, model_orig, unimportance_order[:num_pruned_blocks]
+    )
+    model_pruned = set_model_device_evalmode(
+        model_pruned, device, use_bfloat
+    )
+    return model_pruned

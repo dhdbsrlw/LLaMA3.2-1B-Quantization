@@ -15,3 +15,26 @@ conda activate edge
 ```bash
 import re # not pcre
 ```
+
+---
+```bash
+conda activate edge_2
+```
+- /root/anaconda3/envs/edge_2/lib/python3.10/site-packages/awq/models/__init__.py
+- /root/anaconda3/envs/edge_2/lib/python3.10/site-packages/awq/models/auto.py 
+
+---
+### Step 1. Block Sensitivity Analysis 
+```bash
+python src/block_analyze.py --config cfg/block_analyze.yaml
+```
+
+### Step 2. Prune Blocks and Quantize Model 
+```bash
+python src/block_prune.py --config cfg/block_prune.yaml
+```
+
+### Step 3. Prune Blocks and Quantize Model 
+```bash
+python src/block_prune.py --config cfg/block_prune.yaml
+```

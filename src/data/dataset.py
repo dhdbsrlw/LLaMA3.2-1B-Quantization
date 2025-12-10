@@ -3,10 +3,12 @@ from torch.utils.data import Dataset, DataLoader
 
 from src.data.dataclass import TinyStoriesDataset
 
-def get_loader(tokenizer, num_workers=2, batch_size=8, max_seq_len=128):
-    train_dataset = TinyStoriesDataset(tokenizer, split="train", seq_len=max_seq_len)
-    eval_dataset = TinyStoriesDataset(tokenizer, split="val", seq_len=max_seq_len)
+def get_loader(tokenizer, num_workers=2, batch_size=8, max_seq_len=128, nsamples=None):
     
+    train_dataset = TinyStoriesDataset(tokenizer, split="train", seq_len=max_seq_len, nsamples=nsamples)
+    eval_dataset = TinyStoriesDataset(tokenizer, split="val", seq_len=max_seq_len, nsamples=nsamples)
+    calib_dataset = TinyStoriesDataset(tokenizer, split="calib", seq_len=max_seq_len, nsamples=nsamples)
+
     train_dataloader = DataLoader(
             dataset=train_dataset,
             batch_size=batch_size,
@@ -23,5 +25,13 @@ def get_loader(tokenizer, num_workers=2, batch_size=8, max_seq_len=128):
             pin_memory=True,
         )
 
-    return train_dataloader, eval_dataloader
+    calib_dataloader = DataLoader(
+            dataset=calib_dataset,
+            batch_size=batch_size,
+            num_workers=num_workers,
+            shuffle=True, # TODO
+            pin_memory=True,
+        )
+
+    return train_dataloader, eval_dataloader, calib_dataloader
 
