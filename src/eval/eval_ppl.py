@@ -77,7 +77,7 @@ def eval_ppl(
     csv_value.append(ppl)
 
     if config.file_name is not None:
-        csv_log_path = os.path.join(config.output_dir, f"ppl_{config.file_name}.csv")
+        csv_log_path = os.path.join(config.output_dir, f"{config.file_name}.csv")
     else:
         csv_log_path = os.path.join(config.output_dir, "ppl.csv") 
 
@@ -90,26 +90,27 @@ def eval_ppl(
 def generate_txt(
     model,
     tokenizer,
-    output_dir,
-    input_prompt,
-    generation_config,
-    num_output=5,
-    device="cuda",
+    config,
+    # output_dir,
+    # input_prompt,
+    # generation_config,
+    # num_output=5,
+    # device="cuda",
 ):
     # Generate
-    input_ids = tokenizer(input_prompt, return_tensors="pt")["input_ids"].to(device)
+    input_ids = tokenizer(config.input_prompt, return_tensors="pt")["input_ids"].to(config.device)
     input_len = input_ids[0].size(0)
     
-    txt_path = os.path.join(output_dir, "gen_text.txt") # TODO
+    txt_path = os.path.join(config.output_dir, f"gen_text_{config.file_name}.txt") 
     with open(txt_path, "w", encoding="utf8") as f:
         f.write("=== input ===\n")
-        f.write(f"{input_prompt}\n")
+        f.write(f"{config.input_prompt}\n")
 
-    for i in range(num_output):
+    for i in range(config.num_output):
         with torch.no_grad():
             generation_output = model.generate(
                 input_ids,
-                **generation_config,
+                **config.generation_config,
                 # max_length=(input_len + max_seq_len),
                 # min_length=(
                 #     input_len + max_seq_len
@@ -168,10 +169,11 @@ if __name__ == "__main__":
         generate_txt(
             model=model,
             tokenizer=tokenizer,
-            output_dir=config.output_dir,
-            input_prompt=config.input_prompt,
-            generation_config=config.generation_config,
-            num_output=config.num_output,
-            device=config.device,
+            config=config,
+            # output_dir=config.output_dir,
+            # input_prompt=config.input_prompt,
+            # generation_config=config.generation_config,
+            # num_output=config.num_output,
+            # device=config.device,
         )
         print("# Generating text Done.")

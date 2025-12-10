@@ -10,6 +10,7 @@ import time
 import numpy as np
 import torch
 from omegaconf import OmegaConf
+from gptqmodel import GPTQModel
 # from LLMPruner.peft import PeftModel
 from transformers import (
     AutoConfig,
@@ -108,15 +109,17 @@ def get_model(
     tokenizer = base_model if tokenizer is None else tokenizer
     if model_type == "pretrain":
         config = AutoConfig.from_pretrained(base_model)
-        if "gptq" in base_model.lower():
-            from auto_gptq import AutoGPTQForCausalLM
-
-            model = AutoGPTQForCausalLM.from_quantized(
+        if "gptq" in base_model.lower(): # in model name
+            print("### Loading GPTQ Quantized Model ###")
+            # from auto_gptq import AutoGPTQForCausalLM
+            # model = AutoGPTQForCausalLM.from_quantized(
+            model = GPTQModel.from_quantized(
                 base_model,
                 use_safetensors=True,
                 trust_remote_code=True,
-                use_triton=False,
-                quantize_config=None,
+                device="cuda",
+                # use_triton=False,
+                # quantize_config=None,
             )
             tokenizer = AutoTokenizer.from_pretrained(tokenizer)
         elif (

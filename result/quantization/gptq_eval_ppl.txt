@@ -1,0 +1,37 @@
+from_quantized: adapter: None
+INFO  Loader: Auto dtype (native bfloat16): `torch.bfloat16`                                                                              
+`torch_dtype` is deprecated! Use `dtype` instead!
+INFO  QuantizeConfig: offload_to_disk_path auto set to `./gptqmodel_offload/xylotypographic-servidor/`                                    
+INFO  Estimated Quantization BPW (bits per weight): 4.2875 bpw, based on [bits: 4, group_size: 128]                                       
+The tokenizer you are loading from '/nas2/checkpoints/hf_cache_yj/Llama-3.2-1B-GPTQ-4bit' with an incorrect regex pattern: https://huggingface.co/mistralai/Mistral-Small-3.1-24B-Instruct-2503/discussions/84#69121093e8b480e709447d5e. This will lead to incorrect tokenization. You should set the `fix_mistral_regex=True` flag when loading this tokenizer to fix this issue.
+INFO   Kernel: Auto-selection: adding candidate `TritonV2QuantLinear`                                                                     
+INFO   Kernel: Auto-selection: adding candidate `TorchQuantLinear`                                                                        
+INFO  Kernel: candidates -> `[TritonV2QuantLinear, TorchQuantLinear]`                                                                     
+INFO  Kernel: selected -> `TritonV2QuantLinear`.                                                                                          
+INFO  Loader: device = cuda                                                                                                               
+INFO  Loader: Built map across 1 GPU(s), 20 entries. First 8: [('model.embed_tokens', 'cuda:0'), ('model.layers.0', 'cuda:0'), ('model.layers.1', 'cuda:0'), ('model.layers.2', 'cuda:0'), ('model.layers.3', 'cuda:0'), ('model.layers.4', 'cuda:0'), ('model.layers.5', 'cuda:0'), ('model.layers.6', 'cuda:0')]
+INFO  Loader: device_map = {'model.embed_tokens': 'cuda:0', 'model.layers.0': 'cuda:0', 'model.layers.1': 'cuda:0', 'model.layers.2': 'cuda:0', 'model.layers.3': 'cuda:0', 'model.layers.4': 'cuda:0', 'model.layers.5': 'cuda:0', 'model.layers.6': 'cuda:0', 'model.layers.7': 'cuda:0', 'model.layers.8': 'cuda:0', 'model.layers.9': 'cuda:0', 'model.layers.10': 'cuda:0', 'model.layers.11': 'cuda:0', 'model.layers.12': 'cuda:0', 'model.layers.13': 'cuda:0', 'model.layers.14': 'cuda:0', 'model.layers.15': 'cuda:0', 'lm_head': 'cuda:0', 'model.norm': 'cuda:0', 'model.rotary_emb': 'cuda:0'}
+WARNING:accelerate.utils.modeling:The model weights are not tied. Please use the `tie_weights` method before using the `infer_auto_device` function.
+WARNING:accelerate.utils.modeling:Some weights of the model checkpoint at /nas2/checkpoints/hf_cache_yj/Llama-3.2-1B-GPTQ-4bit/model.safetensors were not used when initializing LlamaForCausalLM: {'model.rotary_emb.inv_freq'}. This may or may not be an issue - make sure that the checkpoint does not have unnecessary parameters, or that the model definition correctly corresponds to the checkpoint.
+INFO  Format: Converting `checkpoint_format` from `gptq` to internal `gptq_v2`.                                                           
+INFO  Format: Converting GPTQ v1 to v2                                                                                                    
+INFO   Kernel: Auto-selection: adding candidate `TritonV2QuantLinear`                                                                     
+INFO  Optimize: `TritonV2QuantLinear` compilation triggered.                                                                              
+INFO  gc.collect() reclaimed 0 objects in 0.063s                                                                                          
+INFO:tokenicer.tokenicer:Tokenicer: Auto fixed pad_token_id=128004 (token='<|finetune_right_pad_id|>').
+INFO  Model: Loaded `generation_config`: GenerationConfig {
+  "bos_token_id": 128000,
+  "eos_token_id": 128001
+}
+                         
+INFO  Model: Auto-fixed `generation_config` mismatch between model and `generation_config.json`.                                          
+INFO  Model: Updated `generation_config`: GenerationConfig {
+  "bos_token_id": 128000,
+  "do_sample": true,
+  "eos_token_id": 128001,
+  "temperature": 0.6,
+  "top_p": 0.9
+}
+
+INFO  Kernel: loaded -> `[TritonV2QuantLinear]`                                                                                           
+The tokenizer you are loading from '/nas2/checkpoints/hf_cache_yj/Llama-3.2-1B-GPTQ-4bit' with an incorrect regex pattern: https://huggingface.co/mistralai/Mistral-Small-3.1-24B-Instruct-2503/discussions/84#69121093e8b480e709447d5e. This will lead to incorrect tokenization. You should set the `fix_mistral_regex=True` flag when loading this tokenizer to fix this issue.
