@@ -106,8 +106,8 @@ def get_model(
     use_bfloat=False,
     # fix_decapoda_config=False,
 ):
-
-    assert model_type in ["pretrain"], f"Unknown model type: {model_type}" #  "pruneLLM", "tune_pruneLLM"
+    # TODO: 삭제 예정
+    # assert model_type in ["pretrain"], f"Unknown model type: {model_type}" #  "pruneLLM", "tune_pruneLLM"
 
     tokenizer = base_model if tokenizer is None else tokenizer
     if model_type == "pretrain":

@@ -208,3 +208,5 @@ __marimo__/
 
 
 gptqmodel_offload
+src/legacy
+wandb
