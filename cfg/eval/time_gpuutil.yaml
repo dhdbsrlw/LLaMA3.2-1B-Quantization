@@ -1,0 +1,30 @@
+# (1) PPL Evaluation
+seed: 42
+output_dir: ./result/metrics
+
+gpu_index: 0 # GPU to monitor 
+
+file_name: 
+model_path: 
+model_type: pretrain
+tokenizer_path:
+
+device: cuda
+use_bfloat: False
+
+ckpt:
+lora_ckpt:
+
+input_prompt: Once upon a time, in a warm and sunny place, there was a big pit. A little boy named Tom liked to play near the pit. One day, Tom lost his red ball. He was very sad.\nTom asked his friend, Sam, to help him search for the ball. They looked high and low, but they could not find the ball. Tom said, "I think my ball fell into the pit."\nSam and Tom went close to the pit. They were scared, but they wanted to find the red ball. They looked into the pit, but it was too dark to see. Tom said, "We must go in and search for my ball."\nThey went into the pit to search. It was dark and scary. They could not find the ball. They tried to get out, but the pit was too deep. Tom and Sam were stuck in the pit. They called for help, but no one could hear them. They were sad and scared, and they never got out of the pit.
+batch_size: 4
+max_seq_len: 128
+
+num_all_runs: 30
+num_warmup_runs: 10
+
+generation_config:  
+  do_sample: True
+  top_p: 0.95
+  top_k: 50
+  temperature: 1.0
+  max_new_tokens: 2048

@@ -21,7 +21,6 @@ from transformers import (
     AwqConfig
 )
 
-
 class AttrDict(dict):
     __setattr__ = dict.__setitem__
 

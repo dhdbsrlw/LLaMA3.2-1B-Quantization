@@ -1,7 +1,5 @@
 # Modified from https://github.com/Nota-NetsPresso/shortened-llm/blob/main/src/lora_retrain.py
 
-# conda activate edge
-
 import argparse
 import os
 import math
@@ -21,7 +19,7 @@ from src.LLMPruner.peft import (
 )
 from src.LLMPruner.utils.prompter import StoryPrompter # Prompter, ZeroPrompter
 from src.utils import get_model, set_seed, build_config
-from src.data.dataclass import TinyStoriesTrainDataset # TODO: mv
+from src.data.dataclass import TinyStoriesTrainDataset 
 
 
 def prepare_data(config, tokenizer, prompter):
@@ -49,7 +47,7 @@ class PerplexityCallback(transformers.TrainerCallback):
             eval_loss = metrics["eval_loss"]
             ppl = math.exp(eval_loss) if eval_loss < 20 else float("inf")
             print(f"\nPerplexity: {ppl:.4f}\n")
-            metrics["eval_ppl"] = ppl   # logged to W&B automatically
+            metrics["eval_ppl"] = ppl # logged to W&B automatically
 
             # save to wandb explicitly
             if state.is_world_process_zero:
@@ -63,63 +61,8 @@ class PerplexityCallback(transformers.TrainerCallback):
                     step=state.global_step,
                 )
 
-    # def on_log(self, args, state, control, logs=None, **kwargs):
-    #     # logs is the dict Trainer will print & send to WandB integration
-    #     if logs is None:
-    #         return
-
-    #     # Only act on eval logs
-    #     if "eval_loss" not in logs:
-    #         return
-
-    #     eval_loss = logs["eval_loss"]
-    #     ppl = math.exp(eval_loss) if eval_loss < 20 else float("inf")
-
-    #     # 1) Inject into logs dict → will be printed by HF logger
-    #     logs["eval_ppl"] = ppl
-
-    #     # 2) Explicitly log to wandb (so it's guaranteed there too)
-    #     if state.is_world_process_zero:
-    #         wandb.log(
-    #             {
-    #                 "eval_loss": eval_loss,
-    #                 "eval_ppl": ppl,
-    #                 "epoch": logs.get("epoch", None),
-    #                 "step": state.global_step,
-    #             },
-    #             step=state.global_step,
-    #         )
-
 
 def prepare_trainer(config, model, tokenizer, train_data, val_data):
-
-    # def compute_metrics(eval_pred):
-    #     logits, labels = eval_pred  # both are numpy arrays
-
-    #     # Use shared memory (no extra copy)
-    #     logits = torch.from_numpy(logits)     # (N, T, V)
-    #     labels = torch.from_numpy(labels)     # (N, T)
-    #     vocab_size = logits.size(-1)
-
-    #     # Reshape for CE
-    #     logits = logits.view(-1, vocab_size)  # (N*T, V)
-    #     labels = labels.view(-1)              # (N*T,)
-
-    #     # Mask out ignore tokens
-    #     valid = labels != -100
-    #     logits = logits[valid]
-    #     labels = labels[valid]
-
-    #     # If no valid tokens exist
-    #     if labels.numel() == 0:
-    #         return {"ppl": float("inf"), "loss": float("nan")}
-
-    #     # Cross entropy
-    #     loss = F.cross_entropy(logits, labels).item()
-
-    #     ppl = math.exp(loss) if loss < 20 else float("inf")
-
-    #     return {"loss": loss, "ppl": ppl}
         
     # (1) set dtype
     fp16_flag = True
@@ -133,39 +76,41 @@ def prepare_trainer(config, model, tokenizer, train_data, val_data):
     # (2) compute misc
     gradient_accumulation_steps = config.batch_size // config.micro_batch_size
     
-    # (3) set trainer
+    # (3) set training args
+    args = transformers.TrainingArguments(
+        per_device_train_batch_size=config.micro_batch_size,
+        gradient_accumulation_steps=gradient_accumulation_steps,
+        warmup_steps=config.warmup_steps,
+        learning_rate=config.learning_rate,
+        fp16=fp16_flag,
+        bf16=bf16_flag,
+        logging_steps=config.logging_steps,
+        logging_first_step=True,
+        optim="adamw_torch",
+        evaluation_strategy="steps",
+        save_strategy="steps",
+        eval_steps=config.eval_steps,
+        save_steps=config.save_steps,
+        output_dir=config.output_dir,
+        save_total_limit=config.save_total_limit,
+        load_best_model_at_end=True,
+        ddp_find_unused_parameters=None,
+        group_by_length=config.group_by_length,
+        report_to="wandb",
+        run_name=config.output_dir.split("/")[-1],
+        metric_for_best_model="eval_ppl",
+        greater_is_better=False,
+        max_steps=config.max_steps,        
+        # epochs will be ignored anyway if max_steps > 0
+    )
+
+    # (4) set trainer
     trainer = transformers.Trainer(
         model=model,
         train_dataset=train_data,
         eval_dataset=val_data,
-        args=transformers.TrainingArguments(
-            per_device_train_batch_size=config.micro_batch_size,
-            gradient_accumulation_steps=gradient_accumulation_steps,
-            warmup_steps=config.warmup_steps,
-            num_train_epochs=config.num_epochs,
-            learning_rate=config.learning_rate,
-            fp16=fp16_flag,
-            bf16=bf16_flag,
-            logging_steps=config.logging_steps, 
-            logging_first_step=True,
-            optim="adamw_torch",
-            eval_strategy="steps",
-            save_strategy="steps",
-            eval_steps=config.eval_steps,
-            save_steps=config.save_steps,
-            output_dir=config.output_dir,
-            save_total_limit=config.save_total_limit,
-            load_best_model_at_end=True,
-            ddp_find_unused_parameters=None,
-            group_by_length=config.group_by_length,
-            # report_to="tensorboard",
-            report_to="wandb",
-            run_name=config.output_dir.split("/")[-1],
-            metric_for_best_model="eval_ppl", # "eval_loss", # "{}_loss".format(config.data_path), 
-            greater_is_better=False,
-        ),
+        args=args,
         data_collator=transformers.DataCollatorForSeq2Seq(
-            # 8의 배수
             tokenizer, pad_to_multiple_of=8, return_tensors="pt", padding=True
         ),
         # compute_metrics=compute_metrics,
@@ -176,7 +121,6 @@ def prepare_trainer(config, model, tokenizer, train_data, val_data):
 
 
 def main(config):
-    # TODO: replace with wandb
     # os.environ["WANDB_PROJECT"] = args.wandb_project 
     set_seed(config.seed)
 
@@ -233,10 +177,13 @@ def main(config):
     ).__get__(model, type(model))
 
     trainer.train(resume_from_checkpoint=config.resume_from_checkpoint)
+    print("Training completed.")
 
     model.state_dict = old_state_dict
     model.save_pretrained(config.output_dir)
     tokenizer.save_pretrained(config.output_dir)
+    print("Model saving completed.")
+
 
     if config.save_lora_merge:
         model = None

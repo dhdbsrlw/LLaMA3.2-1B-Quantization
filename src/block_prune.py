@@ -1,7 +1,5 @@
 # Modified from https://github.com/Nota-NetsPresso/shortened-llm/blob/main/src/block_prune.py
 
-# conda activate edge
-
 import argparse
 import os
 

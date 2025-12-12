@@ -1,7 +1,7 @@
 # Modified from https://github.com/Nota-NetsPresso/shortened-llm/blob/main/src/quantize_gptq.py
 
 # AWQ
-# conda activate edge_2 (transformers==4.47.1)
+# Need `transformers==4.47.1` (another env)
 
 import os, json
 import argparse
@@ -17,7 +17,6 @@ from transformers import AutoTokenizer
 # from gptqmodel import GPTQModel, QuantizeConfig
 # from auto_gptq import AutoGPTQForCausalLM, BaseQuantizeConfig
 from awq import AutoAWQForCausalLM # autoawq
-
 from src.utils import set_seed
 
 logging.basicConfig(
@@ -28,7 +27,6 @@ logging.basicConfig(
 
 
 # AWQ expects text, not tensor.
-
 def get_calibration_dataset(seed, nsamples=128, buffer_size=128): # buffer_size=5000):
     set_seed(seed)
 
@@ -45,25 +43,6 @@ def get_calibration_dataset(seed, nsamples=128, buffer_size=128): # buffer_size=
     raw_data = random.sample(raw_data, k=nsamples)
 
     return raw_data
-
-    # # concaenate long enough text
-    # all_text = "\n\n".join(
-    #     raw_data[:buffer_size]
-    # )  # further reduce sample size (large enough to cover nsamples * seq_len tokens)
-
-    # encoding = tokenizer(all_text, return_tensors="pt")
-
-    # # gather dataset
-    # dataset = []
-    # for _ in range(nsamples):
-    #     # pick a random starting index
-    #     i = random.randint(0, encoding.input_ids.shape[1] - seq_len - 1)
-    #     j = i + seq_len
-    #     input_ids = encoding.input_ids[:, i:j]
-    #     attention_mask = torch.ones_like(input_ids)
-    #     dataset.append({"input_ids": input_ids, "attention_mask": attention_mask})
-
-    # return dataset
 
 
 def quantize(base_model, tokenizer_name=None, quantized_model_dir=None):
@@ -127,12 +106,12 @@ def quantize(base_model, tokenizer_name=None, quantized_model_dir=None):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model_path", type=str, default="/nas2/checkpoints/Llama-3.2-1B", help="path to the base model")
+    parser.add_argument("--model_path", type=str, default="./checkpoints/Llama-3.2-1B", help="path to the base model")
     parser.add_argument("--tokenizer_path", type=str, default=None, help="if None, base model name is used")
     parser.add_argument(
         "--quantized_model_dir",
         type=str,
-        default="/nas2/checkpoints/hf_cache_yj/Llama-3.2-1B-AWQ-4bit",
+        default="./checkpoints/hf_cache_yj/Llama-3.2-1B-AWQ-4bit",
         # default=None,
         help="if None, it is inferred from model_path (base_model).",
     )

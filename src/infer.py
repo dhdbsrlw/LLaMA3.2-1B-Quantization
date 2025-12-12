@@ -1,16 +1,12 @@
 # infer Llama-3.2-1B
 
-# conda activate edge
-
 import os, json
 import argparse
 import torch
-
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 
 def format_chat_template(batch, tokenizer):
-
     system_prompt =  """You are a helpful, honest and harmless assitant designed to help engineers. Think through each question logically and provide an answer. Don't make things up, if you're unable to answer a question advise the user that you're unable to answer as it is outside of your scope."""
 
     samples = []
@@ -40,10 +36,10 @@ def format_chat_template(batch, tokenizer):
 
 
 if __name__ == "__main__":
+
     parser = argparse.ArgumentParser(description="Inference script for Llama-3.2-1B model.")
-    parser.add_argument("--model_path", type=str, default="/nas2/checkpoints/Llama-3.2-1B")
+    parser.add_argument("--model_path", type=str, default="./checkpoints/Llama-3.2-1B")
     parser.add_argument("--quant", action="store_true") # default=False
-    # parser.add_argument("--input", type=str, required=True)
     parser.add_argument("--input", type=str, default="Hello, how are you?")
     args = parser.parse_args()
 
@@ -68,7 +64,7 @@ if __name__ == "__main__":
         outputs = model.generate(
             **inputs,
             max_new_tokens=256,
-            do_sample=False,  # 필요에 따라 True/False
+            do_sample=False,  
             # The following generation flags are not valid and may be ignored: ['temperature', 'top_p']. Set `TRANSFORMERS_VERBOSITY=info` for more details.
         )
 

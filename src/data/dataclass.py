@@ -3,6 +3,7 @@ import torch
 import random
 from torch.utils.data import Dataset
 
+
 class TinyStoriesTrainDataset(Dataset):
     def __init__(self, config, tokenizer, prompter, split: str = "train", min_input_tokens: int = 20, min_output_tokens: int = 20):
 
@@ -122,9 +123,6 @@ class TinyStoriesTrainDataset(Dataset):
             )
 
         return tokenized_full_prompt
-
-
-
 
 
 class TinyStoriesEvalDataset(Dataset):

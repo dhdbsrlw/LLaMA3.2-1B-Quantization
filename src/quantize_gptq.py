@@ -1,7 +1,6 @@
 # Modified from https://github.com/Nota-NetsPresso/shortened-llm/blob/main/src/quantize_gptq.py
 
 # GPTQ
-# conda activate edge
 
 import os, json
 import argparse
@@ -16,7 +15,6 @@ from datasets import load_dataset
 from auto_gptq import AutoGPTQForCausalLM, BaseQuantizeConfig
 from transformers import AutoTokenizer
 from gptqmodel import GPTQModel, QuantizeConfig
-
 from src.utils import set_seed
 
 logging.basicConfig(
@@ -108,12 +106,12 @@ def quantize(base_model, tokenizer_name=None, quantized_model_dir=None):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model_path", type=str, default="/nas2/checkpoints/Llama-3.2-1B", help="path to the base model")
+    parser.add_argument("--model_path", type=str, default="./checkpoints/Llama-3.2-1B", help="path to the base model")
     parser.add_argument("--tokenizer_path", type=str, default=None, help="if None, base model name is used")
     parser.add_argument(
         "--quantized_model_dir",
         type=str,
-        default="/nas2/checkpoints/hf_cache_yj/Llama-3.2-1B-GPTQ-4bit",
+        default="./checkpoints/hf_cache_yj/Llama-3.2-1B-GPTQ-4bit",
         # default=None,
         help="if None, it is inferred from model_path (base_model).",
     )

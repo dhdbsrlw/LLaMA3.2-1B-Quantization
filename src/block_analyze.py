@@ -1,7 +1,5 @@
 # Modified from https://github.com/Nota-NetsPresso/shortened-llm/blob/main/src/anal_block_sensitivity_ppl.py
 
-# conda activate edge
-
 import argparse
 import csv
 import os
@@ -14,6 +12,7 @@ pyrootutils.setup_root(__file__, indicator=".project-root", pythonpath=True)
 from src.utils import count_params, get_block_pruned_network, get_model, set_seed, build_config
 from src.data.dataset import get_loader
 from src.eval.eval_ppl import llama_eval
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

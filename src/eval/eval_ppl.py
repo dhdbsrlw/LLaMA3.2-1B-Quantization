@@ -1,8 +1,5 @@
 # Modified from https://github.com/Nota-NetsPresso/shortened-llm/blob/main/src/eval_ppl.py
 
-# conda activate edge
-# python src/eval/eval_ppl.py 
-
 import argparse
 import csv
 import os
@@ -24,7 +21,7 @@ def llama_eval(model, test_loader, device):
     for batch in tqdm(test_loader, desc="Evaluating PPL"):
         
         # print("batch shape:", batch.shape)  # batch shape: torch.Size([8, 128]) = (bsz, seq_len)
-        # print("batch type:", batch.dtype) # batch type: torch.int64
+        # print("batch type:", batch.dtype)   # batch type: torch.int64
         # print()
 
         batch = batch.to(device)
@@ -55,7 +52,7 @@ def eval_ppl(
     csv_value = []
 
     t0 = time.perf_counter()
-    _, test_loader, _ = get_loader(tokenizer, 
+    _, test_loader = get_loader(tokenizer, 
                                 num_workers=config.num_workers,
                                 batch_size=config.batch_size, 
                                 max_seq_len=config.max_seq_len)
@@ -89,11 +86,6 @@ def generate_txt(
     model,
     tokenizer,
     config,
-    # output_dir,
-    # input_prompt,
-    # generation_config,
-    # num_output=5,
-    # device="cuda",
 ):
     # Generate
     input_ids = tokenizer(config.input_prompt, return_tensors="pt")["input_ids"].to(config.device)
@@ -132,9 +124,7 @@ def generate_txt(
 
 
 if __name__ == "__main__":
-
-    # TODO: replace print with logging
-
+    
     # (1) setup
     parser = argparse.ArgumentParser()
     parser.add_argument("--cfg_path", type=str, default="cfg/eval/ppl.yaml")
@@ -170,10 +160,5 @@ if __name__ == "__main__":
             model=model,
             tokenizer=tokenizer,
             config=config,
-            # output_dir=config.output_dir,
-            # input_prompt=config.input_prompt,
-            # generation_config=config.generation_config,
-            # num_output=config.num_output,
-            # device=config.device,
         )
         print("# Generating text Done.")
