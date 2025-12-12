@@ -210,3 +210,5 @@ __marimo__/
 gptqmodel_offload
 src/legacy
 wandb
+result/gen_text
+result/quantization
