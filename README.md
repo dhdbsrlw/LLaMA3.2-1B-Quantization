@@ -1,8 +1,8 @@
 # LLaMA3.2-1B-Quantization Project
-> In this project, we apply **Post-training Quantization (PTQ)** and **Layer Pruning** to the base model, and then fine-tune it using **LoRA**.
+> In this project, we apply **Post-training Quantization (PTQ)** and **Block Pruning** to the base model, and then fine-tune it using **LoRA**.
 
-### 1. Donwload base model checkpoint from [HuggingFace](https://huggingface.co/meta-llama/Llama-3.2-1B).
-### 2. Create Conda environment.
+### 1. Donwload base model checkpoint from [HuggingFace](https://huggingface.co/meta-llama/Llama-3.2-1B)
+### 2. Create Conda environment
 
 ```bash
 conda create -n edge python=3.10 -y
@@ -10,14 +10,13 @@ conda activate edge
 pip install -r requirements.txt
 ```
 ⚠️ Conda environment for AWQ
-AutoAWQ requires a downgraded version of `transformers`.
-To use AWQ, install dependencies with:
+AutoAWQ requires a downgraded version of `transformers`.<br/>To use AWQ, install dependencies with:
 ```bash
 pip install -r requirements_awq.txt
 ```
 
 <details>
-<summary>Issues</summary>
+<summary>Conda Env Issues</summary>
 
   1. If an error related to the `pcre` package occurs, replace it with `re`.
 
@@ -35,24 +34,38 @@ pip install -r requirements_awq.txt
 </details>
   
 
-### 3. Apply PTQ Methods.
+### 3. Apply PTQ
 #### 3.1 GPTQ
+```bash
+python src/quantize_gptq.py 
+```
 #### 3.2 AWQ
-
-
-Block Sensitivity Analysis 
 ```bash
-python src/block_analyze.py --config cfg/block_analyze.yaml
+python src/quantize_awq.py 
 ```
 
-### Step 2. Prune Blocks and Quantize Model 
+### 4. Apply (Transformer) Block Pruning
+#### 4.1. Analyze block sensitivity (ppl).
 ```bash
-python src/block_prune.py --config cfg/block_prune.yaml
+python src/block_analyze.py --cfg_path cfg/block_analyze.yaml
+```
+#### 4.2. Prune blocks and quantize model.
+```bash
+python src/block_prune.py --cfg_path cfg/block_prune.yaml
+```
+### 5. LoRA Fine-tuning
+```bash
+python src/train.py --cfg_path cfg/train.yaml
 ```
 
-### Step 3. Prune Blocks and Quantize Model 
+### 6. Evaluate
 ```bash
-python src/block_prune.py --config cfg/block_prune.yaml
+# (1) perplexity (generated text quality)
+python src/eval/eval_ppl.py --cfg_path cfg/eval/ppl.yaml
+# (2) throughput / latency
+python src/eval/eval_time_gpuutil.py --cfg_path cfg/eval/time_gpuutil.yaml
+# (3) model size (compresssion ratio)
+python src/eval/eval_compression.py
 ```
 
 ## Acknowledgement
