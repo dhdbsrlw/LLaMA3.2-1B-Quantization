@@ -1,8 +1,9 @@
 # LLaMA3.2-1B-Quantization Project
 > In this project, we apply **Post-training Quantization (PTQ)** and **Block Pruning** to the base model, and then fine-tune it using **LoRA**.
 
-### 1. Donwload base model checkpoint from [HuggingFace](https://huggingface.co/meta-llama/Llama-3.2-1B)
-### 2. Create Conda environment
+### 1. Donwload base model (LLaMA3.2-1B) checkpoint from [HuggingFace](https://huggingface.co/meta-llama/Llama-3.2-1B).
+### 2. Prepare the dataset (TinyStories-v2) from [HuggingFace](https://huggingface.co/datasets/roneneldan/TinyStories).
+### 3. Create Conda environment
 
 ```bash
 conda create -n edge python=3.10 -y
@@ -34,31 +35,36 @@ pip install -r requirements_awq.txt
 </details>
   
 
-### 3. Apply PTQ
-#### 3.1 GPTQ
+### 4. Apply PTQ
+#### 4.1 GPTQ
 ```bash
 python src/quantize_gptq.py 
 ```
-#### 3.2 AWQ
+#### 4.2 AWQ
 ```bash
 python src/quantize_awq.py 
 ```
 
-### 4. Apply (Transformer) Block Pruning
-#### 4.1. Analyze block sensitivity (ppl).
+### 5. Apply (Transformer) Block Pruning
+#### 5.1. Analyze block sensitivity (ppl).
 ```bash
 python src/block_analyze.py --cfg_path cfg/block_analyze.yaml
 ```
-#### 4.2. Prune blocks and quantize model.
+#### 5.2. Prune blocks and quantize model.
 ```bash
 python src/block_prune.py --cfg_path cfg/block_prune.yaml
 ```
-### 5. LoRA Fine-tuning
+### 6. LoRA Fine-tuning
 ```bash
 python src/train.py --cfg_path cfg/train.yaml
 ```
 
-### 6. Evaluate
+### 7. Evaluate
+You can **directly use** the trained model. Download it here:
+- LLaMA + GPTQ [[HF Link]](https://huggingface.co/dhdbsrlw/Llama_3_2_1B_GPTQ_4bit)
+- LLaMA + LoRA Training [[HF Link]](https://huggingface.co/dhdbsrlw/Llama_3_2_1B_TinyStories_LoRA_SFT)
+- LLaMA + Pruning 3 Blocks + LoRA Training [[HF Link]](https://huggingface.co/dhdbsrlw/Llama_3_2_1B_Prune3_LoRA) (final)
+
 ```bash
 # (1) perplexity (generated text quality)
 python src/eval/eval_ppl.py --cfg_path cfg/eval/ppl.yaml
